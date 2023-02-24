@@ -48,24 +48,25 @@ def parse_page(query: str, page_id: int = 1, url: str = "https://mixkit.co/free-
     return max_page
 
 if __name__ == "__main__":
-    KEYWORDS = ["dog", "transport", "food", "animal", "nature", "cloud", "fire"] # Tags to parse
-    PROCESSES = 20
+    KEYWORDS = ["dog", "transport", "food", "animal", "nature", "cloud", "fire", "woman", "computer", "lifestyle", "buisness", "party"] # Tags to parse
+    PROCESSES = 100
     parsed_counter = 0
     download_tasks = []
     global_df = pd.DataFrame(columns=['video', 'description'])
     for keyword in KEYWORDS:
+        print(f"Processing keyword: {keyword}")
         # Process urls
         max_page = parse_page(keyword)
         for page in range(2, max_page + 1):
             parse_page(keyword, page_id=page)
-        print(f"Total tasks: {len(download_tasks)}")
-        global_df.to_csv('captions.csv') # Save final captions
-        # Split task for multiple processes
-        chunks = np.array_split(download_tasks, PROCESSES)
-        pid = 0
-        for chunk in chunks:
-            print("Spawning process")
-            p = Process(target=lambda: process_chunk(chunk, pid))
-            p.start()
-            pid += 1
+    print(f"Total tasks: {len(download_tasks)}")
+    global_df.to_csv('captions.csv') # Save final captions
+    # Split task for multiple processes
+    chunks = np.array_split(download_tasks, PROCESSES)
+    pid = 0
+    for chunk in chunks:
+        print("Spawning process")
+        p = Process(target=lambda: process_chunk(chunk, pid))
+        p.start()
+        pid += 1
     
