@@ -15,7 +15,7 @@ def process_chunk(chunk, pid):
     global global_df
     for video in chunk:
         download_video(video["url"], video["video_name"])
-        print(f"From: {pid}")
+        #print(f"From: {pid}")
         #global_df = pd.concat([global_df, pd.DataFrame([{"video": f"{video['video_name']}.mp4", "description": video["description"]}])])
         #global_df.to_csv('captions.csv') # Checkpoint save after each new video
 
@@ -26,7 +26,7 @@ def parse_page(query: str, page_id: int = 1, url: str = "https://mixkit.co/free-
     pagination_items = soup.find_all("a", {"class": "pagination__link"})
     max_page = int(pagination_items[-1].text)
     video_divs = soup.find_all("div", {"class": "item-grid-item"}) 
-    print(f"Fetched from page: {len(video_divs)}")
+    print(f"Fetched {len(video_divs)} from page: {page_id}")
     for video in video_divs:
         video_base = video.find_all("a", {"class": "item-grid-video-player__overlay-link"})[0]
         href = video_base.get("href")
@@ -36,7 +36,7 @@ def parse_page(query: str, page_id: int = 1, url: str = "https://mixkit.co/free-
         except IndexError: # No description for this video
             pass
         #print(href, video_description)
-        print(f"Processing video {parsed_counter}")
+        #print(f"Processing video {parsed_counter}")
         url = href.replace("/free-stock-video/", "mixkit-")
         video_name = url[:-1]
         direct_url = f"{base_domain}/{url[:-1]}.mp4"
@@ -48,22 +48,24 @@ def parse_page(query: str, page_id: int = 1, url: str = "https://mixkit.co/free-
     return max_page
 
 if __name__ == "__main__":
-    KEYWORD = "dog"
+    KEYWORDS = ["dog", "transport", "food", "animal", "nature", "cloud", "fire"] # Tags to parse
     PROCESSES = 20
     parsed_counter = 0
     download_tasks = []
     global_df = pd.DataFrame(columns=['video', 'description'])
-    # Process urls
-    max_page = parse_page(KEYWORD)
-    for page in range(2, max_page + 1):
-        parse_page(KEYWORD, page_id=page)
-    global_df.to_csv('captions.csv') # Save final captions
-    # Split task for multiple processes
-    chunks = np.array_split(download_tasks, PROCESSES)
-    pid = 0
-    for chunk in chunks:
-        print("Spawning process")
-        p = Process(target=lambda: process_chunk(chunk, pid))
-        p.start()
-        pid += 1
-   
+    for keyword in KEYWORDS:
+        # Process urls
+        max_page = parse_page(keyword)
+        for page in range(2, max_page + 1):
+            parse_page(keyword, page_id=page)
+        print(f"Total tasks: {len(download_tasks)}")
+        global_df.to_csv('captions.csv') # Save final captions
+        # Split task for multiple processes
+        chunks = np.array_split(download_tasks, PROCESSES)
+        pid = 0
+        for chunk in chunks:
+            print("Spawning process")
+            p = Process(target=lambda: process_chunk(chunk, pid))
+            p.start()
+            pid += 1
+    
