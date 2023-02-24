@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # Process urls
     max_page = parse_page(KEYWORD)
     for page in range(2, max_page + 1):
-        parse_page(KEYWORD)
+        parse_page(KEYWORD, page_id=page)
     global_df.to_csv('captions.csv') # Save final captions
     # Split task for multiple processes
     chunks = np.array_split(download_tasks, PROCESSES)
